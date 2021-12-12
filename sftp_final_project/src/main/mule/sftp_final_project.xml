@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="5384c259-6df9-4860-83b3-54e1ab6567ca" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<sftp:config name="SFTP_Config" doc:name="SFTP Config" doc:id="59e11fb6-c0ce-496e-bb4d-3b15847488cf" >
+		<sftp:connection host="${sftp.host}" username="${secure::sftp.username}" password="${secure::sftp.password}" port="${sftp.port}"/>
+	</sftp:config>
+	<sftp:config name="SFTP_Config1_write1" doc:name="SFTP Config" doc:id="685663c7-0da3-4ed0-8e79-ec239e65c35d" >
+		<sftp:connection workingDir="${sftp.write1}" host="${sftp.host}" username="${secure::sftp.username}" password="${secure::sftp.password}" port="${sftp.port}"/>
+	</sftp:config>
+	<sftp:config name="SFTP_Config1_write2" doc:name="SFTP Config" doc:id="123daec4-df11-4346-a692-6c19778aae50" >
+		<sftp:connection workingDir="${sftp.write2}" host="${sftp.host}" username="${secure::sftp.username}" password="${secure::sftp.password}" port="${sftp.port}"/>
+	</sftp:config>
+	<sftp:config name="SFTP_Config1_write3" doc:name="SFTP Config" doc:id="e44b7b7f-0dc9-4ff6-812c-5d63c2ca7b42" >
+		<sftp:connection workingDir="${sftp.write3}" host="${sftp.host}" username="${secure::sftp.username}" password="${secure::sftp.password}" port="${sftp.port}"/>
+	</sftp:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="d098d95a-5cd2-436c-954a-c30f2e00b3e3" file="${mule.env}.properties" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="954e7618-83dc-4883-9a89-9c6b08b7de5f" file="${mule.env}.properties" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<flow name="sftp_final_projectFlow" doc:id="8e8ead8b-6306-46d3-b666-f869882dddb7" >
+		<http:listener doc:name="Listener" doc:id="af35ff9a-afe9-4ac3-a01c-a03fae408f83" config-ref="HTTP_Listener_config" path="/sftp3"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5e62fdcb-535b-4a5d-8458-43407b6d580a" message="sftp final logic:::"/>
+		<sftp:list doc:name="List" doc:id="0944b1c2-98da-4a98-894b-44e62b64c524" config-ref="SFTP_Config" directoryPath="${sftp.list}">
+			<sftp:matcher filenamePattern="*.json" />
+		</sftp:list>
+		<logger level="INFO" doc:name="Logger" doc:id="cd955ba0-ea4e-4fdf-a11e-3a4834653c67" message="#[payload]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="179af64e-9d5d-4eb4-b024-009934d5ff2c" >
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="c70f122c-c068-4a59-962c-be4a61503774" message="#[payload]"/>
+				<foreach doc:name="For Each" doc:id="a91de9f0-f007-4c46-9aa7-bf0b323aa92b" >
+					<sftp:write doc:name="Write" doc:id="3afc354f-7629-48ea-9aa9-fc35fb3c26fb" config-ref="SFTP_Config1_write1" path="#[attributes.fileName]" />
+				</foreach>
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="9eea23b4-f52d-4d9f-b3c0-b1008ce8bd2e" message="#[payload]"/>
+				<foreach doc:name="For Each" doc:id="422dc987-794a-41ba-bae6-edcb39a0dbe7" >
+					<sftp:write doc:name="Write" doc:id="03ca6cf3-0021-44bb-98a3-b22d3bc57989" config-ref="SFTP_Config1_write2" path="#[attributes.fileName]" />
+				</foreach>
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="e0aad40c-39d5-426f-b96d-225e893ad702" message="#[payload]"/>
+				<foreach doc:name="For Each" doc:id="350753f5-b4e1-4c35-be21-4c4e4cb8e3f7" >
+					<sftp:write doc:name="Write" doc:id="16126a7b-6771-429d-afc6-20325aa17952" config-ref="SFTP_Config1_write3" path="#[attributes.fileName]" />
+				</foreach>
+			</route>
+		</scatter-gather>
+		<logger level="INFO" doc:name="Logger" doc:id="258b9e3b-a2e2-4332-8554-9b91a783e186" message="#[payload]"/>
+	</flow>
+</mule>
